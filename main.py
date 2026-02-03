@@ -7,7 +7,7 @@ from models import Producto
 app = FastAPI()
 
 # Crear tablas en Supabase (si no existen)
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def root():
