@@ -6,10 +6,6 @@ from models import Producto
 
 app = FastAPI()
 
-# 👇 ESTA LÍNEA VA AQUÍ (una sola vez)
-Base.metadata.create_all(bind=engine)
-
-
 @app.post("/productos")
 def crear_producto(
     nombre: str,
