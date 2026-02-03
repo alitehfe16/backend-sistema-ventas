@@ -1,32 +1,39 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List
 
+from database import Base, engine, get_db
+from models import Producto
+
 app = FastAPI()
 
-# ===== MODELO =====
-class Producto(BaseModel):
+Base.metadata.create_all(bind=engine)
+
+class ProductoCreate(BaseModel):
     nombre: str
     precio: float
     stock: int
 
-# ===== ENDPOINT BASE =====
+class ProductoOut(ProductoCreate):
+    id: int
+
+    class Config:
+        orm_mode = True
+
 @app.get("/")
 def root():
     return {"status": "ok"}
 
-# ===== CREAR PRODUCTO (AÚN NO GUARDA EN SUPABASE) =====
-@app.post("/productos")
-def crear_producto(producto: Producto):
-    return {
-        "mensaje": "Producto recibido correctamente",
-        "producto": producto
-    }
+@app.post("/productos", response_model=ProductoOut)
+def crear_producto(producto: ProductoCreate, db: Session = Depends(get_db)):
+    nuevo = Producto(**producto.dict())
+    db.add(nuevo)
+    db.commit()
+    db.refresh(nuevo)
+    return nuevo
 
-# ===== LISTAR PRODUCTOS (MOCK) =====
-@app.get("/productos", response_model=List[Producto])
-def listar_productos():
-    return [
-        {"nombre": "Taladro", "precio": 500, "stock": 10},
-        {"nombre": "Amoladora", "precio": 350, "stock": 5}
-    ]
+@app.get("/productos", response_model=List[ProductoOut])
+def listar_productos(db: Session = Depends(get_db)):
+    return db.query(Producto).all()
+
