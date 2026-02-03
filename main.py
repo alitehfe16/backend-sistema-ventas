@@ -6,12 +6,9 @@ from models import Producto
 
 app = FastAPI()
 
-# Crear tablas en Supabase (si no existen)
-# Base.metadata.create_all(bind=engine)
+# 👇 ESTA LÍNEA VA AQUÍ (una sola vez)
+Base.metadata.create_all(bind=engine)
 
-@app.get("/")
-def root():
-    return {"status": "ok"}
 
 @app.post("/productos")
 def crear_producto(
@@ -29,8 +26,3 @@ def crear_producto(
     db.commit()
     db.refresh(producto)
     return producto
-
-@app.get("/productos")
-def listar_productos(db: Session = Depends(get_db)):
-    return db.query(Producto).all()
-
