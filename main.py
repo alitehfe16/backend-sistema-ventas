@@ -1,43 +1,32 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
-import os
-from sqlalchemy import create_engine, text
-
-DATABASE_URL = os.environ.get("DATABASE_URL")
-
-engine = create_engine(DATABASE_URL)
 
 app = FastAPI()
 
+# ===== MODELO =====
 class Producto(BaseModel):
     nombre: str
     precio: float
     stock: int
 
+# ===== ENDPOINT BASE =====
 @app.get("/")
 def root():
     return {"status": "ok"}
 
+# ===== CREAR PRODUCTO (AÚN NO GUARDA EN SUPABASE) =====
 @app.post("/productos")
 def crear_producto(producto: Producto):
-    with engine.begin() as conn:
-        conn.execute(
-            text(
-                "INSERT INTO productos (nombre, precio, stock) VALUES (:nombre, :precio, :stock)"
-            ),
-            {
-                "nombre": producto.nombre,
-                "precio": producto.precio,
-                "stock": producto.stock,
-            },
-        )
-    return {"mensaje": "Producto guardado en Supabase"}
+    return {
+        "mensaje": "Producto recibido correctamente",
+        "producto": producto
+    }
 
+# ===== LISTAR PRODUCTOS (MOCK) =====
 @app.get("/productos", response_model=List[Producto])
 def listar_productos():
-    with engine.begin() as conn:
-        result = conn.execute(
-            text("SELECT nombre, precio, stock FROM productos")
-        ).mappings().all()
-    return result
+    return [
+        {"nombre": "Taladro", "precio": 500, "stock": 10},
+        {"nombre": "Amoladora", "precio": 350, "stock": 5}
+    ]
